@@ -1,0 +1,32 @@
+name: Build and Publish github template
+
+on:
+  push:
+    branches: 
+      - master
+
+  schedule:
+    - cron: "0 0 * * *" # Runs every day at midnight UTC
+
+jobs: 
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+        - uses: actions/checkout@v4
+  
+        - name: Install BlazorStatic.Templates and create the blog
+          run: |
+                dotnet new install BlazorStatic.Templates
+                dotnet new BlazorStaticMinimalBlog -o BlazorStaticMinimalBlog
+  
+        - name: Push to master branch of BlazorStatic/BlazorStaticMinimalBlog
+          run: |
+            git init --initial-branch=master
+            git config user.name "GitHub Action"
+            git config user.email "action@github.com"
+            git remote add origin https://x-access-token:${{ secrets.BLAZORSTATICMINIMALBLOG_REPO_TOKEN }}@github.com/BlazorStatic/BlazorStaticMinimalBlog.git
+            git add .
+            git commit -m "publish of the template"
+            git push -f origin master
+          working-directory: BlazorStaticMinimalBlog
