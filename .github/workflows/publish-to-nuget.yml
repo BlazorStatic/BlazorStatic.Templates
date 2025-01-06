@@ -25,6 +25,11 @@ jobs:
       contents: write
 
     steps:
+      - name: Conditional NuGet Update
+        if: ${{ github.event.inputs.run_nuget_update }}
+        run: |
+          echo "Running NuGet update..."
+          dotnet restore
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
@@ -72,6 +77,11 @@ jobs:
 
 
       - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Conditional NuGet Update
+        if: ${{ github.event.inputs.run_nuget_update }}
+        run: |
+          echo "Running NuGet update..."
+          dotnet restore
 
       - name: Upload NuGet package artifacts
         if: ${{ github.event.inputs.run_nuget_update }}
