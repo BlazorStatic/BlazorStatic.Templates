@@ -1,6 +1,6 @@
 
 
-name: Build, publish to gh pages and nuget
+name: "[Manual] - build, update versions (of the nuget and BlazorStatic reference), test template and publish to nuget"
 
 on:
   workflow_dispatch:
@@ -9,9 +9,13 @@ on:
         description: "Enter the new BlazorStatic version"
         required: true
         default: "1.0.0-beta.XX"
+      run_nuget_update:
+        description: "Run NuGet update"
+        required: true
+        type: boolean
+        default: false
 
 env:
-  TEMPLATE_PROJ_PATH: BlazorStaticTemplates/BlazorStatic.Templates.csproj
   NUGET_FOLDER: nugetky
 
 jobs:
@@ -20,16 +24,16 @@ jobs:
     permissions:
       contents: write
 
-
-
     steps:
+
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
-      - name: Update .csproj files with new version
+      - name: Update all templates (their .csproj file) with new version
         run: |
+          echo "new version of blazorStatic is ${{ github.event.inputs.new_version_blazorstatic }} ${{ github.event.inputs.run_nuget_update }}"
           # Define the list of .csproj files
           csproj_files=(
             "templates/BlazorStaticMinimalBlogTemplate/BlazorStaticMinimalBlog.csproj"
@@ -37,86 +41,50 @@ jobs:
 
           # Loop through each file and update the version
           for csproj_file in "${csproj_files[@]}"; do
-            if [[ ! -f "$csproj_file" ]]; then
-              echo "Error: $csproj_file does not exist."
-              exit 1
-            fi
-
             # Replace the version in the .csproj file
             sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"[^\"]*\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ github.event.inputs.new_version_blazorstatic }}\"/" "$csproj_file"
-
-            # Verify the update
-            if grep -q "<PackageReference Include=\"BlazorStatic\" Version=\"${{ github.event.inputs.new_version_blazorstatic }}\"" "$csproj_file"; then
-              echo "BlazorStatic version updated to ${{ github.event.inputs.new_version_blazorstatic }} in $csproj_file."
-            else
-              echo "Error: Failed to update the BlazorStatic version in $csproj_file."
-              exit 1
-            fi
           done
 
-      # Step 2: Read the current version from the BlazorStatic.Templates.csproj file
-      - name: Extract current version
-        id: extract-version
-        run: |
-          current_version=$(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' ./BlazorStatic.Templates.csproj)
-          echo "current_version=$current_version" >> $GITHUB_ENV
-
-      # Step 3: Increment the version using the action
       - name: Increment version
         id: increment-version
-        uses: christian-draeger/increment-semantic-version@v2
+        uses: christian-draeger/increment-semantic-version@1.2.3
         with:
-          current-version: ${{ env.current_version }}
+          current-version: $(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' ./BlazorStatic.Templates.csproj)
           version-fragment: minor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
 
       - name: Update version in csproj
         run: |
-          sed -i "s/<PackageVersion>${{ env.current_version }}<\/PackageVersion>/<PackageVersion>${{ steps.increment-version.outputs.next-version }}<\/PackageVersion>/" ./BlazorStatic.Templates.csproj
-
-
+          sed -i "s|<PackageVersion>.*</PackageVersion>|<PackageVersion>${{ steps.increment-version.outputs.next-version }}</PackageVersion>|" ./BlazorStatic.Templates.csproj
 
 
       - name: Create nuget BlazorStatic.Templates to destination folder
         run: |
-          mkdir -p "${{ env.NUGET_FOLDER }}"
           dotnet pack BlazorStatic.Templates.csproj --output ${{ env.NUGET_FOLDER }}
 
-  # Step: Install package, create project, and build
+      # Step: Install package, create project, and build
       - name: Test Template Installation and Build
         run: |
-          # Use the dynamically determined package version
-          package_version="${{ steps.increment-version.outputs.next-version }}"
+          dotnet new install  ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${{ steps.increment-version.outputs.next-version }}.nupkg
 
-          echo "Using package version: $package_version"
+          # Create a new project from the template and then try to build it
+          dotnet new BlazorStaticMinimalBlog -o TestProject --force
 
-          # Install the template package
-          dotnet new install --force "bin/Release/BlazorStatic.Templates.${package_version}.nupkg"
+          dotnet build TestProject
 
-          # Create a new project from the template
-          dotnet new BlazorStaticMinimalBlog -o "TestProject" --force
-
-          # Build the newly created project
-          dotnet build "TestProject"
-
-
-#      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Upload NuGet package artifacts
+        if: ${{ github.event.inputs.run_nuget_update == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+            name: nuget-packages
+            path: ${{ env.NUGET_FOLDER }}/*.nupkg
 #
-#      - name: Upload NuGet package artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#            name: nuget-packages
-#            path: ${{ env.NUGET_FOLDER }}/*.nupkg
-#
-#  publish-to-nuget:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Download NuGet package artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: nuget-packages
-#      - run: dotnet nuget push "*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY_BLAZORSTATIC_TEMPLATES }}
+  publish-to-nuget:
+    if: ${{ github.event.inputs.run_nuget_update == 'true' }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download NuGet package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+      - run: dotnet nuget push "*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY_BLAZORSTATIC_TEMPLATES }}
