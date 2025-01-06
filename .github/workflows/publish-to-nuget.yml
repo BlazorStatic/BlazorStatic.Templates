@@ -29,7 +29,10 @@ jobs:
         if: ${{ github.event.inputs.run_nuget_update }}
         run: |
           echo "Running NuGet update..."
-          dotnet restore
+      - name: Conditional NuGet Updatee
+        if: "false"
+        run: |
+          echo "Runieieining NuGet update..."
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
