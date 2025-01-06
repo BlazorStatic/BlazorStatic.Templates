@@ -82,10 +82,9 @@ jobs:
 
       - name: Create nuget BlazorStatic.Templates to destination folder
         run: |
-          mkdir -p "${{ env.NUGET_FOLDER }}"
           dotnet pack BlazorStatic.Templates.csproj --output ${{ env.NUGET_FOLDER }}
 
-  # Step: Install package, create project, and build
+      # Step: Install package, create project, and build
       - name: Test Template Installation and Build
         run: |
           # Use the dynamically determined package version
@@ -94,7 +93,7 @@ jobs:
           echo "Using package version: $package_version"
 
           # Install the template package
-          dotnet new install --force "bin/Release/BlazorStatic.Templates.${package_version}.nupkg"
+          dotnet new install --force ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${package_version}.nupkg"
 
           # Create a new project from the template
           dotnet new BlazorStaticMinimalBlog -o "TestProject" --force
