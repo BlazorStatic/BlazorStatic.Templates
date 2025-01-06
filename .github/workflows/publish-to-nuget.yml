@@ -64,7 +64,7 @@ jobs:
       # Step 3: Increment the version using the action
       - name: Increment version
         id: increment-version
-        uses: christian-draeger/increment-semantic-version@v1.2.3
+        uses: christian-draeger/increment-semantic-version@1.2.3
         with:
           current-version: ${{ env.current_version }}
           version-fragment: minor
