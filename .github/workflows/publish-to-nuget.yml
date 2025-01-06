@@ -1,6 +1,6 @@
 
 
-name: "[Manual] - build, update versions (of the nuget and BlazorStatic reference), test template and publish to nuget
+name: "[Manual] - build, update versions (of the nuget and BlazorStatic reference), test template and publish to nuget"
 
 on:
   workflow_dispatch:
