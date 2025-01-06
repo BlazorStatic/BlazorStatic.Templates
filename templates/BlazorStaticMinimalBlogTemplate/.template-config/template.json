@@ -37,12 +37,12 @@
         {
           "condition": "true",
           "exclude": [
-            "./BlazorStaticMinimalBlog/.git",
+            "./.git",
             ".git"
           ]
         }
       ],
-      "source": "./BlazorStaticMinimalBlog"
+      "source": "./"
     }
   ],
   "symbols": {

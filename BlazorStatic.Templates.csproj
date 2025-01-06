@@ -8,7 +8,7 @@
     <Authors>tesar.tech</Authors>
     <Description>Templates for creating project for static websites using BlazorStatic.</Description>
     <PackageTags>dotnet-new;templates;blazor;static;website;generator;BlazorStatic</PackageTags>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
 
     <!-- Include content in the NuGet package -->
     <IncludeContentInPack>true</IncludeContentInPack>
@@ -18,8 +18,8 @@
      <NoDefaultExcludes>true</NoDefaultExcludes>
 
      <PackageReadmeFile>README.md</PackageReadmeFile>
-     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/tesar-tech/BlazorStatic/</RepositoryUrl>
+     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/BlazorStatic/BlazorStatic/</RepositoryUrl>
 
 
   </PropertyGroup>
@@ -27,12 +27,12 @@
   <ItemGroup>
     <!-- Include all template files, excluding build folders -->
     <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
-    
+
     <!-- Remove any files from compilation, as these are templates -->
     <Compile Remove="**\*" />
     <None Include="README.md" Pack="true" PackagePath="\" />
 
-    
+
 
   </ItemGroup>
 </Project>
