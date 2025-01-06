@@ -1,6 +1,6 @@
 
 
-name: Build, publish to gh pages and nuget
+name: "[Manual] - build, update versions (of the nuget and BlazorStatic reference), test template and publish to nuget
 
 on:
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Update all templates (their .csproj file) with new version
         run: |
-          echo "new version of blazorStatic is ${{ github.event.inputs.new_version_blazorstatic }}"
+          echo "new version of blazorStatic is ${{ github.event.inputs.new_version_blazorstatic }} ${{ github.event.inputs.run_nuget_update }}"
           # Define the list of .csproj files
           csproj_files=(
             "templates/BlazorStaticMinimalBlogTemplate/BlazorStaticMinimalBlog.csproj"
