@@ -93,7 +93,7 @@ jobs:
           echo "Using package version: $package_version"
 
           # Install the template package
-          dotnet new install --force ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${package_version}.nupkg"
+          dotnet new install --force ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${package_version}.nupkg
 
           # Create a new project from the template
           dotnet new BlazorStaticMinimalBlog -o "TestProject" --force
