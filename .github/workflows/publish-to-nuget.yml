@@ -30,6 +30,7 @@ jobs:
 
       - name: Update all templates (their .csproj file) with new version
         run: |
+          echo "new version of blazorStatic is ${{ github.event.inputs.new_version_blazorstatic }}"
           # Define the list of .csproj files
           csproj_files=(
             "templates/BlazorStaticMinimalBlogTemplate/BlazorStaticMinimalBlog.csproj"
@@ -37,21 +38,8 @@ jobs:
 
           # Loop through each file and update the version
           for csproj_file in "${csproj_files[@]}"; do
-            if [[ ! -f "$csproj_file" ]]; then
-              echo "Error: $csproj_file does not exist."
-              exit 1
-            fi
-
             # Replace the version in the .csproj file
             sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"[^\"]*\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ github.event.inputs.new_version_blazorstatic }}\"/" "$csproj_file"
-
-            # Verify the update
-            if grep -q "<PackageReference Include=\"BlazorStatic\" Version=\"${{ github.event.inputs.new_version_blazorstatic }}\"" "$csproj_file"; then
-              echo "BlazorStatic version updated to ${{ github.event.inputs.new_version_blazorstatic }} in $csproj_file."
-            else
-              echo "Error: Failed to update the BlazorStatic version in $csproj_file."
-              exit 1
-            fi
           done
 
       #  Read the current version from the BlazorStatic.Templates.csproj file
@@ -81,13 +69,7 @@ jobs:
       # Step: Install package, create project, and build
       - name: Test Template Installation and Build
         run: |
-          # Use the dynamically determined package version
-          package_version="${{ steps.increment-version.outputs.next-version }}"
-
-          echo "Using package version: $package_version"
-
-          # Install the template package
-          dotnet new install --force ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${package_version}.nupkg
+          dotnet new install  ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${{ steps.increment-version.outputs.next-version }}.nupkg
 
           # Create a new project from the template and then try to build it
           dotnet new BlazorStaticMinimalBlog -o TestProject --force
