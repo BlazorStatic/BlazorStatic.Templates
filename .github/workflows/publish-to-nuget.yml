@@ -28,7 +28,7 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Update .csproj files with new version
+      - name: Update all templates (their .csproj file) with new version
         run: |
           # Define the list of .csproj files
           csproj_files=(
@@ -54,30 +54,24 @@ jobs:
             fi
           done
 
-      # Step 2: Read the current version from the BlazorStatic.Templates.csproj file
-      - name: Extract current version
-        id: extract-version
-        run: |
-          current_version=$(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' ./BlazorStatic.Templates.csproj)
-          echo "current_version=$current_version" >> $GITHUB_ENV
+      #  Read the current version from the BlazorStatic.Templates.csproj file
+#      - name: Extract current version
+#        id: extract-version
+#        run: |
+#          current_version=$(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' ./BlazorStatic.Templates.csproj)
+#          echo "current_version=$current_version" >> $GITHUB_ENV
 
-      # Step 3: Increment the version using the action
+      # S Increment the version using the action
       - name: Increment version
         id: increment-version
         uses: christian-draeger/increment-semantic-version@1.2.3
         with:
-          current-version: ${{ env.current_version }}
+          current-version: $(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' ./BlazorStatic.Templates.csproj)
           version-fragment: minor
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
 
       - name: Update version in csproj
         run: |
-          sed -i "s/<PackageVersion>${{ env.current_version }}<\/PackageVersion>/<PackageVersion>${{ steps.increment-version.outputs.next-version }}<\/PackageVersion>/" ./BlazorStatic.Templates.csproj
-
-
+          sed -i "s|<PackageVersion>.*</PackageVersion>|<PackageVersion>${{ steps.increment-version.outputs.next-version }}</PackageVersion>|" ./BlazorStatic.Templates.csproj
 
 
       - name: Create nuget BlazorStatic.Templates to destination folder
@@ -95,11 +89,10 @@ jobs:
           # Install the template package
           dotnet new install --force ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${package_version}.nupkg
 
-          # Create a new project from the template
-          dotnet new BlazorStaticMinimalBlog -o "TestProject" --force
+          # Create a new project from the template and then try to build it
+          dotnet new BlazorStaticMinimalBlog -o TestProject --force
 
-          # Build the newly created project
-          dotnet build "TestProject"
+          dotnet build TestProject
 
 
 #      - uses: stefanzweifel/git-auto-commit-action@v5
