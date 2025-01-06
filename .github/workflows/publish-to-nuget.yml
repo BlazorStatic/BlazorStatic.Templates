@@ -78,12 +78,13 @@ jobs:
             name: nuget-packages
             path: ${{ env.NUGET_FOLDER }}/*.nupkg
 #
-#  publish-to-nuget:
-#    needs: build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Download NuGet package artifacts
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: nuget-packages
-#      - run: dotnet nuget push "*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY_BLAZORSTATIC_TEMPLATES }}
+  publish-to-nuget:
+    if: ${{ github.event.inputs.run_nuget_update == 'true' }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download NuGet package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+      - run: dotnet nuget push "*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY_BLAZORSTATIC_TEMPLATES }}
