@@ -9,9 +9,13 @@ on:
         description: "Enter the new BlazorStatic version"
         required: true
         default: "1.0.0-beta.XX"
+      run_nuget_update:
+        description: "Run NuGet update"
+        required: true
+        type: boolean
+        default: false
 
 env:
-  TEMPLATE_PROJ_PATH: BlazorStaticTemplates/BlazorStatic.Templates.csproj
   NUGET_FOLDER: nugetky
 
 jobs:
@@ -19,8 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
-
 
     steps:
       - uses: actions/checkout@v4
@@ -42,14 +44,6 @@ jobs:
             sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"[^\"]*\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ github.event.inputs.new_version_blazorstatic }}\"/" "$csproj_file"
           done
 
-      #  Read the current version from the BlazorStatic.Templates.csproj file
-#      - name: Extract current version
-#        id: extract-version
-#        run: |
-#          current_version=$(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' ./BlazorStatic.Templates.csproj)
-#          echo "current_version=$current_version" >> $GITHUB_ENV
-
-      # S Increment the version using the action
       - name: Increment version
         id: increment-version
         uses: christian-draeger/increment-semantic-version@1.2.3
@@ -77,13 +71,14 @@ jobs:
           dotnet build TestProject
 
 
-#      - uses: stefanzweifel/git-auto-commit-action@v5
-#
-#      - name: Upload NuGet package artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#            name: nuget-packages
-#            path: ${{ env.NUGET_FOLDER }}/*.nupkg
+      - uses: stefanzweifel/git-auto-commit-action@v5
+
+      - name: Upload NuGet package artifacts
+        if: ${{ github.event.inputs.run_nuget_update }}
+        uses: actions/upload-artifact@v4
+        with:
+            name: nuget-packages
+            path: ${{ env.NUGET_FOLDER }}/*.nupkg
 #
 #  publish-to-nuget:
 #    needs: build
