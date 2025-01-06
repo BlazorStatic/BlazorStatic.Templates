@@ -25,14 +25,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Conditional NuGet Update
-        if: ${{ github.event.inputs.run_nuget_update }}
-        run: |
-          echo "Running NuGet update..."
-      - name: Conditional NuGet Updatee
-        if: "false"
-        run: |
-          echo "Runieieining NuGet update..."
+
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
@@ -78,16 +71,8 @@ jobs:
 
           dotnet build TestProject
 
-
-      - uses: stefanzweifel/git-auto-commit-action@v5
-      - name: Conditional NuGet Update
-        if: ${{ github.event.inputs.run_nuget_update }}
-        run: |
-          echo "Running NuGet update..."
-          dotnet restore
-
       - name: Upload NuGet package artifacts
-        if: ${{ github.event.inputs.run_nuget_update }}
+        if: ${{ github.event.inputs.run_nuget_update == 'true' }}
         uses: actions/upload-artifact@v4
         with:
             name: nuget-packages
