@@ -42,6 +42,23 @@ jobs:
           find templates -name '*.csproj' -print0 \
             | xargs -0 sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"${{ steps.current.outputs.current }}\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ steps.nuget.outputs.latest }}\"/g"
 
+      - name: Extract current template version
+        id: extract-version
+        run: |
+          current_template_version=$(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' BlazorStatic.Templates.csproj)
+          echo "value=$current_template_version" >> "$GITHUB_OUTPUT"
+
+      - name: Increment version
+        id: increment-version
+        uses: christian-draeger/increment-semantic-version@v2
+        with:
+          current-version: ${{ steps.extract-version.outputs.value }}
+          version-fragment: minor
+
+      - name: Update version in csproj
+        run: |
+          sed -i "s/<PackageVersion>${{ steps.extract-version.outputs.value }}<\/PackageVersion>/<PackageVersion>${{ steps.increment-version.outputs.next-version }}<\/PackageVersion>/" BlazorStatic.Templates.csproj
+
       - name: Create pull request
         if: ${{ steps.nuget.outputs.latest != steps.current.outputs.current }}
         uses: peter-evans/create-pull-request@v7
