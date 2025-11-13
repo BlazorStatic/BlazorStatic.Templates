@@ -1,21 +1,11 @@
-name: "[Manual] - build, update versions (of the nuget and BlazorStatic reference), test template and publish to nuget"
+name: "Test template and publish to nuget"
 
 on:
+  push:
+    branches:
+      - master
+      - devops
   workflow_dispatch:
-    inputs:
-      new_version_blazorstatic:
-        description: "Enter the new BlazorStatic version"
-        required: true
-        default: "1.0.0-beta.XX"
-      run_nuget_update:
-        description: "Run NuGet update"
-        required: true
-        type: boolean
-        default: false
-      new_version_blazorstatic_templates:
-        description: "New Templates version (see current and update by a bit: https://www.nuget.org/packages/BlazorStatic.Templates)"
-        required: true
-        default: "1.X.X"
 
 env:
   NUGET_FOLDER: nugetky
@@ -32,24 +22,6 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Update all templates (their .csproj file) with new version
-        run: |
-          echo "new version of blazorStatic is ${{ github.event.inputs.new_version_blazorstatic }} ${{ github.event.inputs.run_nuget_update }}"
-          # Define the list of .csproj files (update this when new template wishes for the existence)
-          csproj_files=(
-            "templates/BlazorStaticMinimalBlogTemplate/BlazorStaticMinimalBlog.csproj"
-          )
-
-          # Loop through each file and update the version
-          for csproj_file in "${csproj_files[@]}"; do
-            # Replace the version in the .csproj file
-            sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"[^\"]*\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ github.event.inputs.new_version_blazorstatic }}\"/" "$csproj_file"
-          done
-
-      - name: Update version in csproj
-        run: |
-          sed -i "s|<PackageVersion>.*</PackageVersion>|<PackageVersion>${{ github.event.inputs.new_version_blazorstatic_templates }}</PackageVersion>|" ./BlazorStatic.Templates.csproj
-
       - name: Create nuget BlazorStatic.Templates to destination folder
         run: |
           dotnet pack BlazorStatic.Templates.csproj --output ${{ env.NUGET_FOLDER }}
@@ -57,7 +29,7 @@ jobs:
       # Step: Install package, create project, and build
       - name: Test Template Installation and Build
         run: |
-          dotnet new install  ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.${{ github.event.inputs.new_version_blazorstatic_templates }}.nupkg
+          dotnet new install  ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.*.nupkg
 
           # Create a new project from the template and then try to build it
           dotnet new BlazorStaticMinimalBlog -o TestProject --force
@@ -65,19 +37,17 @@ jobs:
           dotnet build TestProject
 
       - name: Upload NuGet package artifacts
-        if: ${{ github.event.inputs.run_nuget_update == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
           path: ${{ env.NUGET_FOLDER }}/*.nupkg
   #
-  publish-to-nuget:
-    if: ${{ github.event.inputs.run_nuget_update == 'true' }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download NuGet package artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: nuget-packages
-      - run: dotnet nuget push "*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY_BLAZORSTATIC_TEMPLATES }}
+  # publish-to-nuget:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Download NuGet package artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: nuget-packages
+  #     - run: dotnet nuget push "*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_API_KEY_BLAZORSTATIC_TEMPLATES }}
