@@ -2,14 +2,37 @@
 
 Templates for `dotnet new`
 
-## Long time no see actions - aka how it works
+[BlazorStatic](https://github.com/BlazorStatic/BlazorStatic/) - Harness the power of Blazor to craft static websites.
 
-- When BlazorStatic new version is creater one has to run the manual action that will build itself, test a little bit and eventually push to nuget
-- Every day the second action runs to refresh BlazorStatic.MinimalBlog with whatever change might happen here. Just check it's not dead.
+## Usage
+
+Install the BlazorStatic templates:
+
+```sh
+dotnet new install BlazorStatic.Templates
+```
+
+This adds new options to your `dotnet new` template list. Then create a new project using:
+
+```sh
+dotnet new BlazorStaticMinimalBlog -o MyBlazorStaticApp
+```
+
+## Long time no see actions - aka how the devops around this works
+
+- There is a cron running every day, checking if new version of BlazorStatic appeared
+  - no: do nothing
+  - yes:
+    - get the version and put in to the templates like MinimalBlog
+    - increment BlazorStatic.Templates version
+    - create PR
+  - Once the PR is merged:
+    - run pipeline that will update BlazorStatic.Templates nuget
+    - create github template for MinimalBlog and push it there
 
 ## Updates
 
-- Time to time an update has to be made to keep the templates fresh. For thes run
+- Time to time an update has to be made to keep the templates fresh and nice.
 
 ```sh
 pwsh pack_and_test.ps1
