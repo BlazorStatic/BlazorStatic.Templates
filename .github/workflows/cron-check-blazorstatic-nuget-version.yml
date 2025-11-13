@@ -50,10 +50,10 @@ jobs:
 
       - name: Increment version
         id: increment-version
-        uses: christian-draeger/increment-semantic-version@v2
+        uses: christian-draeger/increment-semantic-version@v1
         with:
           current-version: ${{ steps.extract-version.outputs.value }}
-          version-fragment: minor
+          version-fragment: patch
 
       - name: Update version in csproj
         run: |
