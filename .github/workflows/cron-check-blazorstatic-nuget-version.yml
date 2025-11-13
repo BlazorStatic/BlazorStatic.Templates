@@ -1,0 +1,59 @@
+name: Sync BlazorStatic version
+
+on:
+  schedule:
+    - cron: "9 2 * * *" # once per day
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get latest BlazorStatic version from NuGet
+        id: nuget
+        run: |
+          latest=$(curl -s https://api.nuget.org/v3-flatcontainer/blazorstatic/index.json | jq -r '.versions[-1]')
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Get current version from templates
+        id: current
+        run: |
+          current=$(grep -oP '(?<=<PackageReference Include="BlazorStatic" Version=")[^"]+' templates/BlazorStaticMinimalBlogTemplate/*.csproj | head -n 1)
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+
+      - name: Check versions
+        run: |
+          echo "Latest:  ${{ steps.nuget.outputs.latest }}"
+          echo "Current: ${{ steps.current.outputs.current }}"
+
+      - name: Exit if already up to date
+        if: ${{ steps.nuget.outputs.latest == steps.current.outputs.current }}
+        run: echo "Templates are already using the latest BlazorStatic version."
+
+      - name: Update template csproj files
+        if: ${{ steps.nuget.outputs.latest != steps.current.outputs.current }}
+        run: |
+          find templates -name '*.csproj' -print0 \
+            | xargs -0 sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"${{ steps.current.outputs.current }}\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ steps.nuget.outputs.latest }}\"/g"
+
+      - name: Create pull request
+        if: ${{ steps.nuget.outputs.latest != steps.current.outputs.current }}
+        uses: peter-evans/create-pull-request@7
+        with:
+          commit-message: "chore: bump BlazorStatic to ${{ steps.nuget.outputs.latest }}"
+          title: "Bump BlazorStatic to ${{ steps.nuget.outputs.latest }}"
+          body: |
+            Automated update of BlazorStatic templates.
+
+            Current: ${{ steps.current.outputs.current }}
+            New:     ${{ steps.nuget.outputs.latest }}
+          branch: "update-blazorstatic-${{ steps.nuget.outputs.latest }}"
+          labels: |
+            automated
+            dependencies
