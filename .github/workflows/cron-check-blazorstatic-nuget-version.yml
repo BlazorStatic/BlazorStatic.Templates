@@ -43,7 +43,7 @@ jobs:
             | xargs -0 sed -i "s/<PackageReference Include=\"BlazorStatic\" Version=\"${{ steps.current.outputs.current }}\"/<PackageReference Include=\"BlazorStatic\" Version=\"${{ steps.nuget.outputs.latest }}\"/g"
 
       - name: Extract current template version
-        id: extract-version
+        id: extract-blazorstatic_template-version
         run: |
           current_template_version=$(grep -oP '(?<=<PackageVersion>).*?(?=</PackageVersion>)' BlazorStatic.Templates.csproj)
           echo "value=$current_template_version" >> "$GITHUB_OUTPUT"
@@ -52,12 +52,12 @@ jobs:
         id: increment-version
         uses: christian-draeger/increment-semantic-version@1.2.3
         with:
-          current-version: ${{ steps.extract-version.outputs.value }}
+          current-version: ${{ steps.extract-blazorstatic_template-version.outputs.value }}
           version-fragment: patch
 
       - name: Update version in csproj
         run: |
-          sed -i "s/<PackageVersion>${{ steps.extract-version.outputs.value }}<\/PackageVersion>/<PackageVersion>${{ steps.increment-version.outputs.next-version }}<\/PackageVersion>/" BlazorStatic.Templates.csproj
+          sed -i "s/<PackageVersion>${{ steps.extract-blazorstatic_template-version.outputs.value }}<\/PackageVersion>/<PackageVersion>${{ steps.increment-version.outputs.next-version }}<\/PackageVersion>/" BlazorStatic.Templates.csproj
 
       - name: Create pull request
         if: ${{ steps.nuget.outputs.latest != steps.current.outputs.current }}
@@ -68,8 +68,13 @@ jobs:
           body: |
             Automated update of BlazorStatic templates.
 
-            Current: ${{ steps.current.outputs.current }}
-            New:     ${{ steps.nuget.outputs.latest }}
+            Current BlazorStatic: ${{ steps.current.outputs.current }}
+            New BlazorStatic:     ${{ steps.nuget.outputs.latest }}
+
+
+            Current BlazorStatic.Templates: ${{ steps.extract-blazorstatic_template-version.outputs.value }}
+            New BlazorStatic.Templates:     ${{ steps.increment-version.outputs.next-version }}
+
           branch: "update-blazorstatic-${{ steps.nuget.outputs.latest }}"
           labels: |
             automated
