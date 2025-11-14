@@ -18,6 +18,12 @@ This adds new options to your `dotnet new` template list. Then create a new proj
 dotnet new BlazorStaticMinimalBlog -o MyBlazorStaticApp
 ```
 
+You can exclude the default posts with `-e`:
+
+```sh
+dotnet new BlazorStaticMinimalBlog -o MyBlazorStaticApp -e
+```
+
 ## Long time no see actions - aka how the devops around this works
 
 - There is a cron running every day, checking if new version of BlazorStatic appeared
