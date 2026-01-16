@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageType>Template</PackageType>
-    <PackageVersion>1.1.5</PackageVersion>
+    <PackageVersion>1.1.6</PackageVersion>
     <PackageId>BlazorStatic.Templates</PackageId>
     <Title>BlazorStatic Project Templates</Title>
     <Authors>tesar.tech</Authors>
@@ -15,10 +15,10 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <ContentTargetFolders>content</ContentTargetFolders>
 
-     <NoDefaultExcludes>true</NoDefaultExcludes>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
 
-     <PackageReadmeFile>README.md</PackageReadmeFile>
-     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/BlazorStatic/BlazorStatic/</RepositoryUrl>
 
 
@@ -31,7 +31,6 @@
     <!-- Remove any files from compilation, as these are templates -->
     <Compile Remove="**\*" />
     <None Include="README.md" Pack="true" PackagePath="\" />
-
 
 
   </ItemGroup>
