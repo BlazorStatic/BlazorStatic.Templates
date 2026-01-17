@@ -15,7 +15,9 @@ jobs:
 
       - name: Install BlazorStatic.Templates and create the blog
         run: |
-          dotnet new install BlazorStatic.Templates
+
+          dotnet pack /p:PackageVersion=1.0.0-test
+          dotnet new install --force "bin/Release/BlazorStatic.Templates.1.0.0-test.nupkg"
           dotnet new BlazorStaticMinimalBlog -o BlazorStaticMinimalBlog
 
       - name: Push to master branch of BlazorStatic/BlazorStaticMinimalBlog
