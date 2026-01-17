@@ -8,7 +8,7 @@
     <Authors>tesar.tech</Authors>
     <Description>Templates for creating project for static websites using BlazorStatic.</Description>
     <PackageTags>dotnet-new;templates;blazor;static;website;generator;BlazorStatic</PackageTags>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 
     <!-- Include content in the NuGet package -->
     <IncludeContentInPack>true</IncludeContentInPack>
@@ -25,11 +25,11 @@
 
   <ItemGroup>
     <!-- Include all template files, excluding build folders -->
-    <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**" />
+    <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**"/>
 
     <!-- Remove any files from compilation, as these are templates -->
-    <Compile Remove="**\*" />
-    <None Include="README.md" Pack="true" PackagePath="\" />
+    <Compile Remove="**\*"/>
+    <None Include="README.md" Pack="true" PackagePath="\"/>
 
 
   </ItemGroup>

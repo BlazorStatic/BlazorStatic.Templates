@@ -13,12 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install BlazorStatic.Templates and create the blog
-        run: |
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
-          dotnet pack /p:PackageVersion=1.0.0-test
-          dotnet new install --force "bin/Release/BlazorStatic.Templates.1.0.0-test.nupkg"
-          dotnet new BlazorStaticMinimalBlog -o BlazorStaticMinimalBlog
+      - name: Install BlazorStatic.Templates and create the blog
+        shell: pwsh
+        run: ./pack_and_test.ps1 -OutputDirectory "BlazorStaticMinimalBlog"
 
       - name: Push to master branch of BlazorStatic/BlazorStaticMinimalBlog
         run: |

@@ -7,9 +7,6 @@ on:
       - devops
   workflow_dispatch:
 
-env:
-  NUGET_FOLDER: nugetky
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,27 +17,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: 10.0.x
 
-      - name: Create nuget BlazorStatic.Templates to destination folder
-        run: |
-          dotnet pack BlazorStatic.Templates.csproj --output ${{ env.NUGET_FOLDER }}
-
-      # Step: Install package, create project, and build
-      - name: Test Template Installation and Build
-        run: |
-          dotnet new install  ${{ env.NUGET_FOLDER }}/BlazorStatic.Templates.*.nupkg
-
-          # Create a new project from the template and then try to build it
-          dotnet new BlazorStaticMinimalBlog -o TestProject --force
-
-          dotnet build TestProject
+      - name: Pack, install, generate, test and build
+        shell: pwsh
+        run: ./pack_and_test.ps1
 
       - name: Upload NuGet package artifacts
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
-          path: ${{ env.NUGET_FOLDER }}/*.nupkg
+          path: bin/Release/*.nupkg
 
   publish-to-nuget:
     needs: build
